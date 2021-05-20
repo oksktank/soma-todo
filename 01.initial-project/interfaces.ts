@@ -1,5 +1,5 @@
 export interface Record {
   id: string;
-  fields: { Status: "Todo" | "Done" | "In progress"; Name: string };
+  fields: { Done: boolean | undefined; Name: string };
   createdTime: string;
 }
