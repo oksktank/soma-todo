@@ -20,6 +20,7 @@ export default function Home() {
                 description: "성공적으로 next.js, chakra-ui를 설정했습니다.",
                 status: "success",
                 position: "top",
+                duration: 1500,
               });
             }}
           >
