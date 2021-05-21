@@ -46,6 +46,7 @@ export default function Home() {
           background: #ffffff;
           padding: 25px;
           width: 400px;
+          min-height: 400px;
           margin-left: auto;
           margin-right: auto;
           overflow-y: auto;
@@ -89,7 +90,18 @@ const TodoList = () => {
       </div>
 
       {todoList.map((todo) => {
-        return <Todo key={todo.id + "/" + todo.fields.Name} todo={todo} />;
+        return (
+          <Todo
+            key={
+              todo.id +
+              "/" +
+              todo.fields.Name +
+              "/" +
+              (todo.fields.Done ? "O" : "X")
+            }
+            todo={todo}
+          />
+        );
       })}
     </div>
   );
