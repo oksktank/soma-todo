@@ -7,5 +7,9 @@ Todo List for SWM 12th
 - touch tsconfig.json
 - npm run dev
 - npm i --save @chakra-ui/react @emotion/react @emotion/styled framer-motion
+- npm i --save @chakra-ui/icons
 - npm i --save typescript @types/react
+- npm i --save immer
+- npm i --save lodash
+- npm i --save recoil
 - .zshrc ~ export AIRTABLE_KEY=#######

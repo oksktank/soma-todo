@@ -12,11 +12,11 @@ export function useTodoList() {
     return axios.get("/api/todo");
   });
 
-  const { mutate, isLoading } = useMutation(
+  const createMutation = useMutation(
     () =>
       axios.post("/api/todo", {
         fields: {
-          Name: "새 Todo",
+          Name: "",
           Done: false,
         },
       }),
@@ -32,6 +32,31 @@ export function useTodoList() {
       },
     }
   );
+
+  const deleteMutation = useMutation(
+    (id: string) => axios.delete(`/api/todo?id=${id}`),
+    {
+      onSuccess: () => {
+        refresh();
+        toast({
+          title: "Deleted",
+          status: "error",
+          position: "bottom",
+          duration: 1500,
+        });
+      },
+    }
+  );
+
+  const updateMutation = useMutation(
+    (record: Record) => axios.patch(`/api/todo?id=${record.id}`, record),
+    {
+      onSuccess: () => {
+        // refresh();
+      },
+    }
+  );
+
   const refresh = () => {
     queryClient.invalidateQueries(key);
   };
@@ -52,7 +77,13 @@ export function useTodoList() {
       ? (todoListQuery.data.data.records as Record[])
       : [],
     isLoading: todoListQuery.isLoading,
+    isProcessing:
+      createMutation.isLoading ||
+      deleteMutation.isLoading ||
+      updateMutation.isLoading,
     refresh: refresh,
-    addNewTodo: mutate,
+    addNewTodo: createMutation.mutate,
+    deleteTodo: deleteMutation.mutate,
+    updateTodo: updateMutation.mutate,
   };
 }

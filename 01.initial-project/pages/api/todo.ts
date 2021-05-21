@@ -20,6 +20,17 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         records: [req.body],
       });
       res.status(200).json({ success: true, data: post.data });
+    } else if (req.method === "PATCH") {
+      const id = req.query.id;
+      const body = req.body;
+      console.log("Update", id, body.fields);
+      const response = await axios.patch(`/${id}`, { fields: body.fields });
+      res.status(200).json({ success: true, data: response.data });
+    } else if (req.method === "DELETE") {
+      const id = req.query.id;
+      console.log("Delete", id);
+      const response = await axios.delete(`/${id}`);
+      res.status(200).json({ success: true, data: response.data });
     } else {
       const list = await axios.get("/?maxRecords=100&view=raw");
 
@@ -27,7 +38,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(200).json({ records: records });
     }
   } catch (e) {
-    console.log(e);
+    // console.log(e);
+    console.log(e.message);
     res.status(500).json({ error: true });
   }
 };
