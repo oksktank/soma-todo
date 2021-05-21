@@ -1,7 +1,7 @@
 import {
   Button,
   useToast,
-  Fade,
+  ScaleFade,
   Spinner,
   IconButton,
   Stack,
@@ -10,21 +10,17 @@ import {
   Editable,
   EditablePreview,
   EditableInput,
+  Fade,
 } from "@chakra-ui/react";
 import { Record } from "../interfaces";
 import { RepeatIcon, AddIcon, DeleteIcon } from "@chakra-ui/icons";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTodoList } from "../hooks/useTodoList";
 import produce from "immer";
 import _ from "lodash";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { addToDeleteMapSelector, toBeDeletedMapState } from "../global-store";
 export default function Home() {
-  const toast = useToast();
-  const [mounted, setMounted] = useState<boolean>(false);
-  useEffect(() => {
-    setTimeout(() => {
-      setMounted(true);
-    }, 500);
-  }, []);
   return (
     <div className="container">
       <TodoList />
@@ -60,27 +56,9 @@ export default function Home() {
 }
 
 const TodoList = () => {
-  const {
-    todoList,
-    isLoading,
-    isProcessing,
-    refresh,
-    addNewTodo,
-    deleteTodo,
-    updateTodo,
-  } = useTodoList();
+  const { todoList, isLoading, isProcessing, refresh, addNewTodo } =
+    useTodoList();
 
-  if (isLoading) {
-    return (
-      <div>
-        <Stack>
-          <Skeleton height="20px" />
-          <Skeleton height="20px" />
-          <Skeleton height="20px" />
-        </Stack>
-      </div>
-    );
-  }
   return (
     <div>
       <div
@@ -111,69 +89,86 @@ const TodoList = () => {
       </div>
 
       {todoList.map((todo) => {
-        const debounceUpdate = _.debounce((todo: Record, nextValue: string) => {
-          const updated = produce(todo, (nextTodo) => {
-            nextTodo.fields.Name = nextValue;
-          });
-          updateTodo(updated);
-        }, 1500);
-        return (
-          <Fade key={todo.id + "/" + todo.fields.Name} in>
-            <div className="todo">
-              <Checkbox
-                defaultChecked={todo.fields.Done === true}
-                style={{ marginRight: 10, verticalAlign: "top" }}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  const updated = produce(todo, (nextTodo) => {
-                    nextTodo.fields.Done = checked;
-                  });
-                  updateTodo(updated);
-                }}
-              />
-              <div style={{ width: 200, marginRight: 10 }}>
-                <Editable
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    height: "100%",
-                  }}
-                  defaultValue={todo.fields.Name}
-                  onChange={(nextValue) => {
-                    debounceUpdate(todo, nextValue);
-                  }}
-                >
-                  <EditablePreview style={{ width: "100%" }} />
-                  <EditableInput />
-                </Editable>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <IconButton
-                  aria-label="Delete"
-                  size="xs"
-                  colorScheme="red"
-                  icon={<DeleteIcon />}
-                  onClick={() => {
-                    deleteTodo(todo.id);
-                  }}
-                />
-              </div>
-            </div>
-          </Fade>
-        );
+        return <Todo key={todo.id + "/" + todo.fields.Name} todo={todo} />;
       })}
+    </div>
+  );
+};
+
+const Todo = (props: { todo: Record }) => {
+  const { todo } = props;
+  const { updateTodo, deleteTodo } = useTodoList();
+  const toBeDeletedMap = useRecoilValue(toBeDeletedMapState);
+  const addToDeleteMap = useSetRecoilState(addToDeleteMapSelector);
+  const debounceUpdate = _.debounce((todo: Record, nextValue: string) => {
+    const updated = produce(todo, (nextTodo) => {
+      nextTodo.fields.Name = nextValue;
+    });
+    updateTodo(updated);
+  }, 1500);
+  const toBeDeleted = toBeDeletedMap[todo.id];
+  return (
+    <Fade
+      in={!toBeDeleted}
+      style={{
+        height: toBeDeleted ? 0 : 30,
+        transition: toBeDeleted ? "0.5s height ease" : undefined,
+      }}
+    >
+      <div className="todo">
+        <Checkbox
+          defaultChecked={todo.fields.Done === true}
+          style={{ marginRight: 10, verticalAlign: "top" }}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            const updated = produce(todo, (nextTodo) => {
+              nextTodo.fields.Done = checked;
+            });
+            updateTodo(updated);
+          }}
+        />
+        <div style={{ width: 200, marginRight: 10 }}>
+          <Editable
+            style={{
+              display: "flex",
+              alignItems: "center",
+              height: "100%",
+              minHeight: 30,
+            }}
+            defaultValue={todo.fields.Name}
+            onChange={(nextValue) => {
+              debounceUpdate(todo, nextValue);
+            }}
+          >
+            <EditablePreview style={{ width: "100%" }} />
+            <EditableInput />
+          </Editable>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <IconButton
+            aria-label="Delete"
+            size="xs"
+            colorScheme="red"
+            icon={<DeleteIcon />}
+            onClick={() => {
+              addToDeleteMap(todo.id);
+              deleteTodo(todo.id);
+            }}
+          />
+        </div>
+      </div>
       <style jsx>{`
         .todo {
           display: flex;
         }
       `}</style>
-    </div>
+    </Fade>
   );
 };
