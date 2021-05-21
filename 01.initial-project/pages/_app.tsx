@@ -3,7 +3,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { QueryClient, QueryClientProvider, useQuery } from "react-query";
 import React from "react";
 import { RecoilRoot } from "recoil";
-
+import { ReactQueryDevtools } from "react-query/devtools";
 const queryClient = new QueryClient();
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -12,6 +12,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <ChakraProvider>
           <Component {...pageProps} />
         </ChakraProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </RecoilRoot>
   );
