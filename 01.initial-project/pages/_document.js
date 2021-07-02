@@ -16,6 +16,7 @@ class MyDocument extends Document {
           />
         </Head>
         <body>
+          <button href="#/ms/signup/60dec30d454b34000428baf0">sign up</button>
           <Main />
           <NextScript />
         </body>
